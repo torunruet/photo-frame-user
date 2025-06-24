@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      text-align: center;
+      background: #f8f8f8;
+    }
+
+    h1 {
+      margin-top: 30px;
+    }
+
+    .container {
+      position: relative;
+      margin: 30px auto;
+      background: #ddd;
+      overflow: hidden;
+      max-width: 100%;
+      max-height: 100vh;
+    }
+
+    #userImage {
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      position: absolute;
+      object-fit: contain;
+      z-index: 1;
+    }
+
+    #frameOverlay {
+      display: none;
+      width: 90%;
+      height: 90%;
+      top: 5%;
+      left: 5%;
+      position: absolute;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .frame-selection {
+      margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .frame-thumbnail {
+      position: relative;
+      width: 240px;
+      height: 360px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #ccc;
+      transition: border 0.2s, transform 0.2s;
+    }
+
+    .frame-thumbnail.square {
+      width: 300px;
+      height: 300px;
+    }
+
+    .frame-thumbnail.landscape {
+      width: 300px;
+      height: 225px;
+    }
+
+    .frame-thumbnail img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .frame-thumbnail.selected {
+      border-color: royalblue;
+      transform: scale(1.02);
+    }
+
+    button {
+      margin: 40px auto;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        page-break-after: avoid;
+      }
+
+      h1, .frame-selection, button {
+        display: none !important;
+      }
+
+      .container {
+        margin: 0;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      #userImage {
+        width: 80% !important;
+        height: 80% !important;
+        top: 10% !important;
+        left: 10% !important;
+        object-fit: contain !important;
+        position: absolute;
+      }
+
+      #frameOverlay {
+        display: block !important;
+        width: 90% !important;
+        height: 90% !important;
+        top: 5% !important;
+        left: 5% !important;
+        object-fit: contain !important;
+        position: absolute;
+      }
+
+      @page {
+        margin: 0;
+        size: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Print Your Photo</h1>
+
+  <div class="container" id="previewContainer" style="width: 720px; height: 1080px;">
+    <img id="userImage" src="" alt="Selected Image" />
+    <img id="frameOverlay" src="" alt="Frame Overlay" />
+  </div>
+
+  <div class="frame-selection" id="frameSelection"></div>
+
+  <button onclick="previewPrint()">Preview</button>
+
+  <script>
+    const userImage = document.getElementById("userImage");
+    const frameOverlay = document.getElementById("frameOverlay");
+    const frameSelection = document.getElementById("frameSelection");
+    const container = document.getElementById("previewContainer");
+
+    const dataURL = localStorage.getItem("selectedImage");
+    if (dataURL) {
+      userImage.src = dataURL;
+    } else {
+      document.body.innerHTML = "<h2>No image selected!</h2>";
+    }
+
+    const frames = [
+      { src: "frame_portrait.png", type: "portrait", width: 720, height: 1080 },
+      { src: "frame_square.png", type: "square", width: 1080, height: 1080 },
+      { src: "frame_landscape.png", type: "landscape", width: 1152, height: 864 }
+    ];
+
+    let selectedFrame = null;
+
+    frames.forEach(frame => {
+      const div = document.createElement("div");
+      div.classList.add("frame-thumbnail");
+      if (frame.type === "square") div.classList.add("square");
+      if (frame.type === "landscape") div.classList.add("landscape");
+
+      const imgBg = document.createElement("img");
+      imgBg.src = dataURL;
+      imgBg.style.zIndex = "1";
+
+      const imgFrame = document.createElement("img");
+      imgFrame.src = frame.src;
+      imgFrame.style.zIndex = "2";
+
+      div.appendChild(imgBg);
+      div.appendChild(imgFrame);
+
+      div.onclick = () => {
+        document.querySelectorAll(".frame-thumbnail").forEach(el => el.classList.remove("selected"));
+        div.classList.add("selected");
+
+        selectedFrame = frame;
+
+        container.style.width = frame.width + "px";
+        container.style.height = frame.height + "px";
+
+        frameOverlay.src = frame.src;
+        frameOverlay.style.display = "block";
+      };
+
+      frameSelection.appendChild(div);
+    });
+
+    function previewPrint() {
+      if (!selectedFrame) {
+        alert("Please select a frame before previewing.");
+        return;
+      }
+
+      container.style.width = selectedFrame.width + "px";
+      container.style.height = selectedFrame.height + "px";
+
+      setTimeout(() => {
+        window.print();
+      }, 100);
+    }
+  </script>
+</body>
+</html>

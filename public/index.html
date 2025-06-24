@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    video {
+      border: 2px solid #333;
+      width: 640px;
+      height: 280px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .controls input, .controls button {
+      padding: 10px;
+      margin: 5px;
+    }
+    #photos {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .photo {
+      margin: 10px;
+      position: relative;
+      border: 3px solid transparent;
+      cursor: pointer;
+    }
+    .photo img {
+      width: 160px;
+      height: 120px;
+    }
+    .photo.selected {
+      border-color: blue;
+    }
+    #next-btn {
+      display: none;
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Photo Booth</h1>
+  <video autoplay id="video"></video>
+  <div class="controls">
+    <input type="number" min="0" placeholder="Timer (sec)" id="timer" />
+    <button id="capture-btn">Capture</button>
+  </div>
+  <div id="photos"></div>
+  <button id="next-btn">Next</button>
+
+  <script>
+    const video = document.getElementById("video");
+    const captureBtn = document.getElementById("capture-btn");
+    const photosContainer = document.getElementById("photos");
+    const timerInput = document.getElementById("timer");
+    const nextBtn = document.getElementById("next-btn");
+    let selectedImage = null;
+
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.srcObject = stream;
+    });
+
+    captureBtn.addEventListener("click", () => {
+      let timer = timerInput.value - 1;
+      if (timer > 0) {
+        captureBtn.disabled = true;
+        const countdown = setInterval(() => {
+          captureBtn.textContent = `Capture (${timer})`;
+          if (timer <= 0) {
+            clearInterval(countdown);
+            captureBtn.textContent = "Capture";
+            captureBtn.disabled = false;
+            capturePhoto();
+          }
+          timer--;
+        }, 1000);
+      } else {
+        capturePhoto();
+      }
+    });
+
+    function capturePhoto() {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL("image/png");
+
+      const photoDiv = document.createElement("div");
+      photoDiv.classList.add("photo");
+      const img = document.createElement("img");
+      img.src = dataURL;
+      photoDiv.appendChild(img);
+
+      photoDiv.addEventListener("click", () => {
+        document.querySelectorAll(".photo").forEach(p => p.classList.remove("selected"));
+        photoDiv.classList.add("selected");
+        selectedImage = dataURL;
+        nextBtn.style.display = "inline-block";
+      });
+
+      photosContainer.appendChild(photoDiv);
+    }
+
+    nextBtn.addEventListener("click", () => {
+      if (selectedImage) {
+        localStorage.setItem("selectedImage", selectedImage);
+        window.location.href = "print.html";
+      }
+    });
+  </script>
+</body>
+</html>
