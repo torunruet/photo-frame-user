@@ -58,17 +58,17 @@
 
                 <div class="mb-4">
                     <label class="block mb-1">Name</label>
-                    <input type="text" name="cus_name" class="w-full border rounded p-2" required>
+                    <input type="text" name="cus_name" class="w-full border rounded p-2">
                 </div>
 
                 <div class="mb-4">
                     <label class="block mb-1">Email</label>
-                    <input type="email" name="cus_email" class="w-full border rounded p-2" required>
+                    <input type="email" name="cus_email" class="w-full border rounded p-2">
                 </div>
 
                 <div class="mb-4">
                     <label class="block mb-1">Phone</label>
-                    <input type="text" name="cus_phone" class="w-full border rounded p-2" required>
+                    <input type="text" name="cus_phone" class="w-full border rounded p-2">
                 </div>
 
                 <div class="mb-4">

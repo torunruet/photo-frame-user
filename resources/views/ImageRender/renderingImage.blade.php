@@ -144,25 +144,21 @@
                             : `http://127.0.0.1:8081/storage/${frame.image_path}`
                     }));
 
-                    // Update frame thumbnails
-                    updateFrameThumbnails();
-
-                    // Set default (first) frame for all images after fetching
                     if (frames.length > 0) {
+                        // Set default first frame for all images
                         selectedFrames = Array(images.length).fill(frames[0].id);
-                        selectedPrices = Array(images.length).fill(Number(frames[0].price)); // Ensure price is number
+                        selectedPrices = Array(images.length).fill(Number(frames[0].price));
 
-                         // Iterate through each image and set the first frame as overlay
-                        const frameContainers = document.querySelectorAll('#image-grid > .flex.flex-col.items-center');
-                        frameContainers.forEach((container, imgIdx) => {
-                            const frameOverlay = container.querySelector(`#frame-overlay-${imgIdx}`);
-                            if (frameOverlay) {
-                                frameOverlay.src = frames[0].image_path;
+                        images.forEach((_, imgIdx) => {
+                            const overlay = document.getElementById(`frame-overlay-${imgIdx}`);
+                            if (overlay) {
+                                overlay.src = frames[0].image_path;
                             }
                         });
-
-                        updateSummary();
                     }
+
+                    updateFrameThumbnails(); // <- Call this after setting frame defaults
+                    updateSummary();
                 } else {
                     console.error('Error fetching frames:', data.message);
                 }
@@ -173,39 +169,31 @@
 
         // Function to update frame thumbnails in the UI
         function updateFrameThumbnails() {
-            // Target only the image grid containers
             const frameContainers = document.querySelectorAll('#image-grid > .flex.flex-col.items-center');
 
             frameContainers.forEach((container, imgIdx) => {
-                // Find the frame buttons container within this specific image card
                 let frameButtonsContainer = container.querySelector('.flex.items-center.gap-2');
-
-                // This container should already exist based on the Blade template structure
-                // If for some reason it doesn't, log an error and skip.
                 if (!frameButtonsContainer) {
                     console.error('Frame buttons container not found for image card', imgIdx);
                     return;
                 }
 
-                frameButtonsContainer.innerHTML = ''; // Clear existing buttons
+                frameButtonsContainer.innerHTML = '';
 
                 frames.forEach((frame, frameIdx) => {
                     const button = document.createElement('button');
                     button.type = 'button';
-                    button.className = `frame-thumb border-2 rounded-lg p-1 bg-gray-200 focus:ring-2 focus:ring-blue-400`;
+                    button.className = 'frame-thumb border-2 rounded-lg p-1 bg-gray-200';
                     button.dataset.imgIdx = imgIdx;
                     button.dataset.frameId = frame.id;
                     button.dataset.framePrice = frame.price;
                     button.dataset.frameImg = frame.image_path;
 
-                    if (frameIdx === 0) {
+                    // Set border color if selected
+                    if (selectedFrames[imgIdx] == frame.id) {
                         button.style.borderColor = '#2563eb';
-                        // Set initial frame overlay only if it hasn't been set by default in Blade
-                        // or if we are refreshing frames.
-                        const frameOverlay = document.getElementById('frame-overlay-' + imgIdx);
-                        if (frameOverlay && frameOverlay.src === '' || frameOverlay.src.includes('($frames[0]->image_path ?? \'\')')) { // Check if src is empty or still has the placeholder
-                             frameOverlay.src = frame.image_path;
-                        }
+                    } else {
+                        button.style.borderColor = '#e5e7eb';
                     }
 
                     button.innerHTML = `
@@ -213,29 +201,31 @@
                         ${frame.price} tk
                     `;
 
-                    button.addEventListener('click', function() {
-                        const imgIdx = Number(this.dataset.imgIdx);
+                    button.addEventListener('click', function () {
                         const frameId = this.dataset.frameId;
-                        const framePrice = this.dataset.framePrice;
+                        const framePrice = Number(this.dataset.framePrice);
                         const frameImg = this.dataset.frameImg;
 
                         selectedFrames[imgIdx] = frameId;
-                        selectedPrices[imgIdx] = Number(framePrice); // Convert to number
+                        selectedPrices[imgIdx] = framePrice;
 
+                        // Update frame overlay image
+                        const overlay = document.getElementById(`frame-overlay-${imgIdx}`);
+                        if (overlay) {
+                            overlay.src = frameImg;
+                        }
+
+                        // Update UI
                         this.parentElement.querySelectorAll('button').forEach(b => b.style.borderColor = '#e5e7eb');
                         this.style.borderColor = '#2563eb';
 
-                        const frameOverlay = document.getElementById('frame-overlay-' + imgIdx);
-                        if (frameOverlay) {
-                            frameOverlay.src = frameImg;
-                        }
                         updateSummary();
                     });
 
                     frameButtonsContainer.appendChild(button);
                 });
 
-                // Add "More" button
+                // Optional: Add More button
                 const moreButton = document.createElement('span');
                 moreButton.className = 'ml-auto text-sm text-gray-500 cursor-pointer';
                 moreButton.textContent = 'More';
@@ -387,6 +377,12 @@
                     }
                 });
         });
+    </script>
+
+</body>
+
+</html>
+        
     </script>
 
 </body>
