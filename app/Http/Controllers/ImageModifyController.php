@@ -15,16 +15,19 @@ class ImageModifyController extends Controller
 {
     public function ShowImage($session)
     {
-        // Fetch session-wise images from the storage
         $images = Storage::disk('public')->files("uploads/{$session}");
-        // Fetch all active frames
         $frames = Frame::where('is_active', true)->get();
-        // Return the renderingImage view with the session, images, and frames
-        return view('ImageRender.renderingImage', [
-            'images' => $images,
-            'session' => $session,
-            'frames' => $frames
-        ]);
+
+        // 💡 Send response with no-cache headers
+        return response()
+            ->view('ImageRender.renderingImage', [
+                'images' => $images,
+                'session' => $session,
+                'frames' => $frames
+            ])
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function mergeFrames(Request $request)
