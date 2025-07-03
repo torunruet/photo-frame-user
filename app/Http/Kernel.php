@@ -64,6 +64,12 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'device.auth' => \App\Http\Middleware\DeviceAuthentication::class,
+        'device.auth' => \App\Http\Middleware\EnsureDeviceAuthenticated::class,
     ];
+
+    // Add this if you need the legacy $routeMiddleware property for compatibility:
+    // protected $routeMiddleware = [
+    //     // ...other middleware...
+    //     'device.auth' => \App\Http\Middleware\EnsureDeviceAuthenticated::class,
+    // ];
 }

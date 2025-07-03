@@ -58,14 +58,18 @@ Route::middleware(['auth', 'admin'])->group(function () {
 // });
 
 // Device Authentication Routes
-Route::get('/device/login', [DeviceAuthController::class, 'showLoginForm'])->name('device.login');
-Route::post('/device/authenticate', [DeviceAuthController::class, 'authenticate'])->name('device.authenticate');
-Route::post('/device/logout', [DeviceAuthController::class, 'logout'])->name('device.logout');
+//Route::get('/device-login', [DeviceAuthController::class, 'showLogin'])->name('device.login.form');
+//Route::post('/device/login', [DeviceAuthController::class, 'login'])->name('device.login');
+// Catch unsupported GET to /device/login
+// Route::get('/device/login', function () {
+//     return redirect()->route('device.login.form');
+// });
+//Route::post('/device/logout', [DeviceAuthController::class, 'logout'])->name('device.logout');
 
 // Protect the front view route
-Route::middleware(['device.auth'])->group(function () {
-    Route::get('/', [ImageUploadController::class, 'index'])->name('front.view');
-});
+// Route::middleware(['device.auth'])->group(function () {
+//     Route::get('/front', [ImageUploadController::class, 'index'])->name('front.view');
+// });
 
 Route::get('/start-session', [ImageUploadController::class, 'QrView'])->name('start.session');
 Route::get('/upload-page/{session}', function ($session) {
@@ -138,3 +142,26 @@ Route::post('/print/store', [PrintController::class, 'store'])->name('print.stor
 Route::get('/thank-you', function () {
     return view('thankyou'); // Make sure this Blade view exists
 })->name('thankyou');
+
+// Smart entry point
+Route::get('/', function () {
+    return session()->has('device_id')
+        ? redirect()->route('front.view')
+        : redirect()->route('device.login.form');
+});
+
+// Device login page
+Route::get('/device-login', [DeviceAuthController::class, 'showLogin'])->name('device.login.form');
+
+// Device login form submission
+Route::post('/device/login', [DeviceAuthController::class, 'login'])->name('device.login');
+
+// Optional: Prevent GET access to POST route
+Route::get('/device/login', function () {
+    return redirect()->route('device.login.form');
+});
+
+// Protected front view
+Route::middleware(['device.auth'])->group(function () {
+    Route::get('/front', [ImageUploadController::class, 'index'])->name('front.view');
+});

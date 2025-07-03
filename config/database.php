@@ -63,18 +63,17 @@ return [
             ]) : [],
         ],
 
-        'mysql_admin' => [
+        'frame_admin_db' => [
             'driver' => 'mysql',
-            'host' => env('ADMIN_DB_HOST', '127.0.0.1'),
-            'port' => env('ADMIN_DB_PORT', '3306'),
-            'database' => env('ADMIN_DB_DATABASE', 'forge'),
-            'username' => env('ADMIN_DB_USERNAME', 'forge'),
-            'password' => env('ADMIN_DB_PASSWORD', ''),
+            'host' => env('FRAME_ADMIN_DB_HOST'),
+            'port' => env('FRAME_ADMIN_DB_PORT'),
+            'database' => env('FRAME_ADMIN_DB_DATABASE'),
+            'username' => env('FRAME_ADMIN_DB_USERNAME'),
+            'password' => env('FRAME_ADMIN_DB_PASSWORD'),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
-            'strict' => true,
-            'engine' => null,
+          
         ],
 
 

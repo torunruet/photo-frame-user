@@ -3,46 +3,45 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
+use App\Models\DeviceConfiguration;
+use App\Models\Device;
+use Illuminate\Support\Facades\Storage;
 
 class DeviceAuthController extends Controller
 {
-    public function showLoginForm()
-    {
-        return view('device.login');
+    public function showLogin()
+{
+    $devices = Device::where('is_active', 1)->get(); // Fetch active only
+
+    return view('device-login', compact('devices'));
+}
+
+ public function login(Request $request)
+{
+    $request->validate([
+        'device_id' => 'required|exists:devices,device_id'
+    ]);
+
+    $device = \DB::connection('mysql')->table('devices')
+                ->where('device_id', $request->device_id)
+                ->where('is_active', 1)
+                ->first();
+
+    if (!$device) {
+        return back()->withErrors(['device_id' => 'Invalid or inactive device.']);
     }
 
-    public function authenticate(Request $request)
-    {
-        $request->validate([
-            'device_id' => 'required|string',
-        ]);
+    session([
+        'device_id' => $device->device_id,
+        'device_info' => $device,
+    ]);
 
-        try {
-            $response = Http::post('http://127.0.0.1:8081/api/device/authenticate', [
-                'device_id' => $request->device_id
-            ]);
+    return redirect()->route('front.view');
+}
 
-            if ($response->successful()) {
-                // Store device info in session
-                Session::put('authenticated_device', $response->json()['device']);
-                return redirect()->route('front.view');
-            }
 
-            return back()->withErrors([
-                'device_id' => 'Invalid device ID. Please try again.'
-            ]);
-        } catch (\Exception $e) {
-            return back()->withErrors([
-                'device_id' => 'Unable to connect to authentication service. Please try again later.'
-            ]);
-        }
-    }
-
-    public function logout()
-    {
-        Session::forget('authenticated_device');
-        return redirect()->route('device.login');
-    }
+    // Usage elsewhere:
+    // $device = session('device_info');
+    // $locationId = $device->location_id;
+    // $deviceName = $device->name;
 }
